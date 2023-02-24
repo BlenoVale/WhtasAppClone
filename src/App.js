@@ -11,6 +11,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
 import Login from "./components/Login/Login";
+import Api from "./Api";
 
 export default () => {
 
@@ -21,9 +22,20 @@ export default () => {
     { chatId: 4, title: 'Hermana de Tal', image: 'https://cdn-icons-png.flaticon.com/512/168/168730.png' },
   ]);
   const [activeChat, setActiveChat] = useState({});
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({
+    id: 'ZyRXLnaeVuZMqBsKTNHvJ20xz2w2',
+    name: 'Bleno Vale',
+    avatar: 'https://graph.facebook.com/5962959610486772/picture'
+  });
 
   const [showNewChat, setShowNewChat] = useState(false);
+
+  useEffect(()=>{
+    if(user !== null) {
+      let unsub = Api.onChatList(user.id, setChatList);
+      return unsub;
+    }
+  },[user]);
 
   const handleNewChat = () => {
     setShowNewChat(true);
@@ -35,7 +47,8 @@ export default () => {
       name: u.displayName,
       avatar: u.photoURL
     };
-    //
+
+    await Api.addUser(newUser);
     setUser(newUser);
   }
 
