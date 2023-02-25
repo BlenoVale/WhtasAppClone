@@ -1,6 +1,6 @@
 import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
 import { authentication, db } from './firebaseConfig';
-import { addDoc, arrayUnion, collection, deleteDoc, doc, documentId, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, deleteDoc, doc, documentId, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 export default {
     fbPopup: async () => {
@@ -11,10 +11,20 @@ export default {
     addUser: async (u) => {
         try {
             const userRef = doc(collection(db, 'users'), u.id);
-            await setDoc(userRef, {
-                name: u.name,
-                avatar: u.avatar
-            });
+            const docSnap = await getDoc(userRef);
+
+            if (docSnap.exists()) {
+                await updateDoc(userRef, {
+                    name: u.name,
+                    avatar: u.avatar
+                });
+            } else {
+                await setDoc(userRef, {
+                    name: u.name,
+                    avatar: u.avatar
+                });
+            }
+
         } catch (e) {
             console.error("Erro: ", e);
         }
@@ -34,6 +44,9 @@ export default {
         } catch (e) {
             console.error("Erro: ", e);
         }
+    },
+    getUser: () => {
+
     },
     getContactList: async (userId) => {
         try {
@@ -87,13 +100,79 @@ export default {
 
     },
     onChatList: (userID, setChatList) => {
-        const unsub = onSnapshot(doc(db, "users", userID), (doc) => {
+        return onSnapshot(doc(db, "users", userID), (doc) => {
             if (doc.exists) {
                 let data = doc.data();
                 if (data.chats) {
-                    setChatList(data.chats);
+                    let chats = [...data.chats];
+
+                    chats.sort((a,b) => {
+                        if(a.lastMessageDate === undefined){
+                            return -1;
+                        }
+                        if(b.lastMessageDate === undefined){
+                            return -1;
+                        }
+                        
+                        if (a.lastMessageDate.seconds < b.lastMessageDate.seconds) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+
+                    setChatList(chats);
                 }
             }
         });
+    },
+    onChatContent: (chatId, setList, setUsers) => {
+        return onSnapshot(doc(db, "chats", chatId), (doc) => {
+            if (doc.exists) {
+                let data = doc.data();
+                setList(data.message);
+                setUsers(data.users);
+            }
+        });
+    },
+    sendMessage: async (chatData, userId, type, body, users) => {
+        try {
+            let now = new Date();
+
+            const chatRef = doc(db, 'chats', chatData.chatId);
+            await updateDoc(chatRef, {
+                message: arrayUnion({
+                    type,
+                    author: userId,
+                    body,
+                    date: now
+                })
+            });
+
+            for (let i in users) {
+                const docRef = doc(db, "users", users[i]);
+                let docSnap = await getDoc(docRef);
+                let uData = docSnap.data();
+
+                if (uData.chats) {
+                    let chats = [...uData.chats];
+
+                    for (let e in chats) {
+                        if (chats[e].chatId == chatData.chatId) {
+                            chats[e].lastMessage = body;
+                            chats[e].lastMessageDate = now;
+                        }
+                    }
+
+                    const userRef = doc(db, "users", users[i]);
+                    await updateDoc(docRef, {
+                        chats
+                    });
+                }
+
+            }
+        } catch (e) {
+            console.error("Erro: ", e);
+        }
     }
 }

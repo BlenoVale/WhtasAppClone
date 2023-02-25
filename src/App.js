@@ -15,18 +15,9 @@ import Api from "./Api";
 
 export default () => {
 
-  const [chatList, setChatList] = useState([
-    { chatId: 1, title: 'Fulana de Tal', image: 'https://cdn-icons-png.flaticon.com/512/168/168734.png' },
-    { chatId: 2, title: 'Ciclano de Tal', image: 'https://cdn-icons-png.flaticon.com/512/168/168724.png' },
-    { chatId: 3, title: 'Beltrano de Tal', image: 'https://cdn-icons-png.flaticon.com/512/168/168726.png' },
-    { chatId: 4, title: 'Hermana de Tal', image: 'https://cdn-icons-png.flaticon.com/512/168/168730.png' },
-  ]);
+  const [chatList, setChatList] = useState([]);
   const [activeChat, setActiveChat] = useState({});
-  const [user, setUser] = useState({
-    id: 'ZyRXLnaeVuZMqBsKTNHvJ20xz2w2',
-    name: 'Bleno Vale',
-    avatar: 'https://graph.facebook.com/5962959610486772/picture'
-  });
+  const [user, setUser] = useState(null);
 
   const [showNewChat, setShowNewChat] = useState(false);
 
