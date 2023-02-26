@@ -1,4 +1,4 @@
-import { signInWithPopup, FacebookAuthProvider } from "firebase/auth";
+import { signInWithPopup, FacebookAuthProvider, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
 import { authentication, db } from './firebaseConfig';
 import { addDoc, arrayUnion, collection, deleteDoc, doc, documentId, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
@@ -7,6 +7,24 @@ export default {
         const provider = new FacebookAuthProvider();
         let result = await signInWithPopup(authentication, provider);
         return result;
+    },
+    glgPopup: async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            let result = await signInWithPopup(authentication, provider);
+            return result;
+        } catch (e) {
+            console.error("Erro: ", e);
+        }
+    },
+    gthbPopup: async () => {
+        try {
+            const provider = new GithubAuthProvider();
+            let result = await signInWithPopup(authentication, provider);
+            return result;
+        } catch (e) {
+            console.error("Erro: ", e);
+        }
     },
     addUser: async (u) => {
         try {
@@ -106,14 +124,14 @@ export default {
                 if (data.chats) {
                     let chats = [...data.chats];
 
-                    chats.sort((a,b) => {
-                        if(a.lastMessageDate === undefined){
+                    chats.sort((a, b) => {
+                        if (a.lastMessageDate === undefined) {
                             return -1;
                         }
-                        if(b.lastMessageDate === undefined){
+                        if (b.lastMessageDate === undefined) {
                             return -1;
                         }
-                        
+
                         if (a.lastMessageDate.seconds < b.lastMessageDate.seconds) {
                             return 1;
                         } else {
